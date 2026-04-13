@@ -1,0 +1,17 @@
+{
+	"typescript.preferences.autoImportSpecifierExcludeRegexes": [
+		"^@radix-ui/.*",
+		"^@base-ui/react($|/.*)"
+	],
+	"typescript.preferences.autoImportFileExcludePatterns": [
+		"**/node_modules/@base-ui/**"
+	],
+	"javascript.preferences.autoImportSpecifierExcludeRegexes": [
+		"^@radix-ui/.*",
+		"^@base-ui/react($|/.*)"
+	],
+	"javascript.preferences.autoImportFileExcludePatterns": [
+		"**/node_modules/@base-ui/**"
+	]
+}
+  
