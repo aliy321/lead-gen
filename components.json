@@ -6,13 +6,13 @@
   "tailwind": {
     "config": "",
     "css": "src/styles/globals.css",
-    "baseColor": "mist",
+    "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""
   },
   "iconLibrary": "lucide",
   "rtl": false,
-  "menuColor": "default-translucent",
+  "menuColor": "inverted-translucent",
   "menuAccent": "subtle",
   "aliases": {
     "components": "~/components",

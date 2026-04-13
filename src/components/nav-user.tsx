@@ -23,6 +23,7 @@ import {
 import { EllipsisVerticalIcon, CircleUserRoundIcon, CreditCardIcon, BellIcon, LogOutIcon } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { authClient } from "~/server/better-auth/client"
+import { ModeToggle } from "./ThemeToggle"
 
 export function NavUser({
   user,

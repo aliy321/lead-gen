@@ -8,6 +8,8 @@ export interface Business {
     rating?: number;
     userRatingsTotal?: number;
     types?: string[];
+    photoReference?: string;
+    photoUrl?: string;
     website?: string;
     phone?: string;
     hasWebsite?: boolean;

@@ -44,6 +44,7 @@ import {
     MapZoomControl,
     MapLocateControl,
 } from "~/components/ui/map";
+import Image from "next/image";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
@@ -56,7 +57,6 @@ import ListItem from "~/components/search/list-item";
 import SearchInput from "~/components/search/input";
 import SearchFilter from "~/components/search/filter";
 import {
-    MARKER_SIGNAL,
     STATUS_LABELS,
     type Business,
     type DisplayBusiness,
@@ -64,6 +64,13 @@ import {
     type SavedLead,
 } from "./types";
 import ListItemLoading from "~/components/search/list-item-loading";
+
+function getPlacePhotoUrl(photoUrl?: string, photoReference?: string) {
+    if (photoUrl) return photoUrl;
+    if (!photoReference) return null;
+    // Fallback for any older cached payloads where only reference exists.
+    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=360&photoreference=${encodeURIComponent(photoReference)}`;
+}
 
 interface LeadMapPanelProps {
     mapCenter: [number, number];
@@ -103,14 +110,56 @@ const MapMarkersLayer = memo(function MapMarkersLayer({
                 <MapMarker
                     key={business.id}
                     position={[business.lat, business.lng]}
-                    iconAnchor={[20, 20]}
+                    iconAnchor={[6, 6]}
+                    icon={
+                        <div className="relative flex items-center justify-center">
+                            <p
+                                className={cn(
+                                    "absolute bottom-full left-1/2 mb-1 -translate-x-1/2 whitespace-nowrap rounded border border-border bg-background p-1 text-[10px] leading-none shadow-sm font-mono",
+                                    // business.website ? "text-red-500" : "",
+                                )}
+                            >
+                                {business.name}
+                            </p>
+                            <span
+                                className="size-3 rounded-full border border-border bg-primary shadow-sm"
+                            />
+                        </div>
+                    }
                     eventHandlers={{
                         click: () => onMarkerClick(business.id),
                     }}
                 >
-                    <MapTooltip side="top">{business.name}</MapTooltip>
-                    <MapPopup className="w-64">
-                        <div className="space-y-1.5">
+                    <MapTooltip side="top" permanent>
+                        <div className="min-w-56 overflow-hidden rounded-md border bg-background shadow-sm">
+                            {getPlacePhotoUrl(business.photoUrl, business.photoReference) ? (
+                                <Image
+                                    src={getPlacePhotoUrl(business.photoUrl, business.photoReference) ?? ""}
+                                    alt={`${business.name} place photo`}
+                                    width={224}
+                                    height={96}
+                                    quality={60}
+                                    sizes="224px"
+                                    className="h-24 w-full object-cover"
+                                />
+                            ) : (
+                                <div className="flex h-24 w-full items-center justify-center bg-muted text-xs text-muted-foreground">
+                                    No place photo
+                                </div>
+                            )}
+                            
+                            <div className="space-y-1 p-2">
+                                <p className="line-clamp-1 text-[11px] text-muted-foreground">
+                                    {business.address}
+                                </p>
+                                <p className="text-[11px] text-muted-foreground">
+                                    Rating {business.rating ? business.rating.toFixed(1) : "N/A"}
+                                </p>
+                            </div>
+                        </div>
+                    </MapTooltip>
+                    <MapPopup className="min-w-56">
+                        <div className="space-y-2">
                             <p className="font-medium leading-tight">{business.name}</p>
                             <p className="text-muted-foreground text-xs leading-snug">
                                 {business.address}
@@ -188,14 +237,15 @@ const LeadMapPanel = memo(function LeadMapPanel({
                         }}
                     />
                 )}
+                
                 {hasSearched && !searchQueryEnabled && showRadius && (
                     <MapMarker
                         position={radiusCenter}
                         draggable
                         iconAnchor={[16, 16]}
                         icon={
-                            <div className="flex size-8 items-center justify-center rounded-full border-2 border-blue-600 bg-white shadow-md">
-                                <LocateFixed className="size-4 text-blue-600" />
+                            <div className="flex size-8 items-center justify-center rounded-full border-2 border-primary/50 bg-background shadow-md">
+                                <LocateFixed className="size-4 text-primary" />
                             </div>
                         }
                         eventHandlers={{
@@ -230,25 +280,16 @@ const LeadMapPanel = memo(function LeadMapPanel({
                 </div>
 
                 <MapControlContainer className="bg-popover text-popover-foreground bottom-1 left-1 flex flex-col gap-2 rounded-md border p-2 shadow m-2">
-                    {Object.keys(MARKER_SIGNAL)
-                        .filter((s) => s !== "selected")
-                        .map((status) => (
-                            <div key={status} className="flex items-center gap-2">
-                                <div
-                                    className={cn(
-                                        "w-3 h-3 rounded-full",
-                                        MARKER_SIGNAL[status as keyof typeof MARKER_SIGNAL],
-                                    )}
-                                />
-                                <span className="text-xs capitalize">
-                                    {status === "noWebsite"
-                                        ? "No Website"
-                                        : status === "hasWebsite"
-                                            ? "Has Website"
-                                            : "Pending"}
-                                </span>
-                            </div>
-                        ))}
+                    <div className="flex items-center gap-2">
+                        <div className="size-3 rounded-full border border-border bg-primary" />
+                        <span className="text-xs">Business marker</span>
+                    </div>
+                    {hasSearched && !searchQueryEnabled && showRadius && (
+                        <div className="flex items-center gap-2">
+                            <div className="size-3 rounded-full border-2 border-primary bg-white" />
+                            <span className="text-xs">Search center (draggable)</span>
+                        </div>
+                    )}
                 </MapControlContainer>
 
                 {!searchQueryEnabled && (
@@ -431,7 +472,9 @@ function LeadPageContent() {
             rating: place.rating,
             userRatingsTotal: place.userRatingsTotal,
             types: place.types,
+            photoUrl: place.photoUrl,
             website: place.website,
+            photoReference: place.photoReference,
             phone: place.phone,
         }));
     }, [searchQueryEnabled, searchResults, nearbyResults]);
@@ -515,19 +558,19 @@ function LeadPageContent() {
 
     const handleSaveBusiness = useCallback(
         (detailBusiness: DisplayBusiness) => {
-        createLeadMutation.mutate({
-            placeId: detailBusiness.id,
-            name: detailBusiness.name,
-            address: detailBusiness.address,
-            area: detailBusiness.area ?? undefined,
-            lat: detailBusiness.lat ?? undefined,
-            lng: detailBusiness.lng ?? undefined,
-            rating: detailBusiness.rating ?? undefined,
-            reviewCount: detailBusiness.userRatingsTotal ?? undefined,
-            types: detailBusiness.types?.join(",") ?? undefined,
-            website: detailBusiness.website ?? undefined,
-            phone: detailBusiness.phone ?? undefined,
-        });
+            createLeadMutation.mutate({
+                placeId: detailBusiness.id,
+                name: detailBusiness.name,
+                address: detailBusiness.address,
+                area: detailBusiness.area ?? undefined,
+                lat: detailBusiness.lat ?? undefined,
+                lng: detailBusiness.lng ?? undefined,
+                rating: detailBusiness.rating ?? undefined,
+                reviewCount: detailBusiness.userRatingsTotal ?? undefined,
+                types: detailBusiness.types?.join(",") ?? undefined,
+                website: detailBusiness.website ?? undefined,
+                phone: detailBusiness.phone ?? undefined,
+            });
         },
         [createLeadMutation],
     );
@@ -743,7 +786,7 @@ function LeadPageContent() {
     return (
         <div className="relative flex h-[calc(100svh-var(--header-height))] overflow-hidden">
             {/* Left Panel */}
-            <div className="flex h-full w-[325px] min-w-[300px] flex-col border-r bg-white">
+            <div className="flex h-full w-[325px] min-w-[300px] flex-col border-r">
                 <Tabs
                     value={tab}
                     onValueChange={(value) => {
@@ -977,6 +1020,7 @@ function LeadPageContent() {
                                         Website
                                     </a>
                                 )}
+
                                 {selectedLead.phone && (
                                     <a
                                         href={`tel:${selectedLead.phone}`}

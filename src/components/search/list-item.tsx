@@ -29,7 +29,7 @@ const ListItem = ({ onClick, data, selectedIdx, index }: ListItemProps) => {
             render={<button type="button" />}
             onClick={onClick}
             variant={selectedIdx === index ? "muted" : "outline"}
-            className="w-full cursor-pointer text-left hover:bg-accent/60"
+            className="w-full cursor-pointer text-left hover:bg-muted/50"
         >
             <ItemContent>
                 <ItemTitle className="font-medium">{data.name}</ItemTitle>
@@ -48,7 +48,7 @@ const ListItem = ({ onClick, data, selectedIdx, index }: ListItemProps) => {
             </ItemContent>
             <ItemFooter className="border-t pt-2 text-xs text-muted-foreground">
                 {(data._userRatingsTotal ?? 0) > 0 ? (
-                    <span className="text-accent-foreground">{data._userRatingsTotal} reviews</span>
+                    <span>{data._userRatingsTotal} reviews</span>
                 ) : (
                     <span>No reviews yet</span>
                 )}

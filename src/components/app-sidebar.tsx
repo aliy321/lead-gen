@@ -16,6 +16,7 @@ import {
 } from "~/components/ui/sidebar"
 import { CommandIcon } from "lucide-react"
 import { sidebar } from "~/config/sidebar"
+import { NavSecondary } from "./nav-secondary"
 
 interface SidebarUser {
   name: string
@@ -34,18 +35,19 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
+            {/* <SidebarMenuButton
               className="data-[slot=sidebar-menu-button]:p-1.5!"
               render={<a href="/dashboard" />}
             >
               <CommandIcon className="size-5!" />
               <span className="text-base font-medium">Lead Finder</span>
-            </SidebarMenuButton>
+            </SidebarMenuButton> */}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={sidebar.navMain} />
+        <NavSecondary items={sidebar.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user} />

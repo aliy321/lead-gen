@@ -6,6 +6,9 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { TRPCReactProvider } from "~/trpc/react";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { cn } from "~/lib/utils";
+import Providers from "~/components/Providers";
+
+const geistMonoHeading = Geist_Mono({ subsets: ['latin'], variable: '--font-heading' });
 
 export const metadata: Metadata = {
 	title: "Lead Finder",
@@ -39,12 +42,13 @@ export default function RootLayout({
 		<html
 			lang="en"
 			data-scroll-behavior='smooth'
-			className={cn(geist.variable, geistMono.variable)}
+			className={cn(geist.variable, geistMono.variable, geistMonoHeading.variable)}
+			suppressHydrationWarning
 		>
 			<body>
-				<TRPCReactProvider>
-					<NuqsAdapter>{children}</NuqsAdapter>
-				</TRPCReactProvider>
+				<Providers>
+					{children}
+				</Providers>
 			</body>
 		</html>
 	);

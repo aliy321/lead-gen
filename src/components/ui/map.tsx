@@ -44,9 +44,9 @@ import type {
 	TileLayer,
 	Tooltip,
 } from "leaflet";
+import type { } from "leaflet.markercluster";
 import "leaflet-draw/dist/leaflet.draw.css";
 import "leaflet.fullscreen/dist/Control.FullScreen.css";
-import type {} from "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "leaflet/dist/leaflet.css";
@@ -412,7 +412,7 @@ function MapLayers({
 		if (tileLayers.length > 0 && !selectedTileLayer) {
 			const validDefaultValue =
 				defaultTileLayer &&
-				tileLayers.some((layer) => layer.name === defaultTileLayer)
+					tileLayers.some((layer) => layer.name === defaultTileLayer)
 					? defaultTileLayer
 					: (tileLayers[0]?.name ?? "");
 			setSelectedTileLayer(validDefaultValue);
@@ -614,12 +614,12 @@ function MapMarkerClusterGroup({
 
 	const iconCreateFunction = icon
 		? (cluster: MarkerCluster) => {
-				const markerCount = cluster.getChildCount();
-				const iconNode = icon(markerCount);
-				return L.divIcon({
-					html: renderToString(iconNode),
-				});
-			}
+			const markerCount = cluster.getChildCount();
+			const iconNode = icon(markerCount);
+			return L.divIcon({
+				html: renderToString(iconNode),
+			});
+		}
 		: undefined;
 
 	return (
@@ -782,7 +782,7 @@ function MapZoomControl({
 				<Button
 					type="button"
 					size="icon-sm"
-					variant="secondary"
+					variant="outline"
 					aria-label="Zoom in"
 					title="Zoom in"
 					className="border"
@@ -794,7 +794,7 @@ function MapZoomControl({
 				<Button
 					type="button"
 					size="icon-sm"
-					variant="secondary"
+					variant="outline"
 					aria-label="Zoom out"
 					title="Zoom out"
 					className="border"
@@ -941,7 +941,7 @@ function MapLocateControl({
 			<Button
 				type="button"
 				size="icon-sm"
-				variant={location ? "default" : "secondary"}
+				variant={location ? "outline" : "ghost"}
 				onClick={location ? stopLocating : startLocating}
 				disabled={isLocating}
 				title={
@@ -1173,9 +1173,9 @@ function MapDrawPolyline({
 				new L.Draw.Polyline(map, {
 					...(mapDrawHandleIcon
 						? {
-								icon: mapDrawHandleIcon,
-								touchIcon: mapDrawHandleIcon,
-							}
+							icon: mapDrawHandleIcon,
+							touchIcon: mapDrawHandleIcon,
+						}
 						: {}),
 					showLength,
 					drawError,
@@ -1259,9 +1259,9 @@ function MapDrawPolygon({
 				new L.Draw.Polygon(map, {
 					...(mapDrawHandleIcon
 						? {
-								icon: mapDrawHandleIcon,
-								touchIcon: mapDrawHandleIcon,
-							}
+							icon: mapDrawHandleIcon,
+							touchIcon: mapDrawHandleIcon,
+						}
 						: {}),
 					drawError,
 					shapeOptions,

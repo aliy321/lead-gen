@@ -21,11 +21,19 @@ const GooglePlaceSchema = z.object({
 			weekday_text: z.array(z.string()).optional(),
 		})
 		.optional(),
+	photos: z
+		.array(
+			z.object({
+				photo_reference: z.string().optional(),
+			}),
+		)
+		.optional(),
 	website: z.string().optional(),
 	formatted_phone_number: z.string().optional(),
 	business_status: z.string().optional(),
 	price_level: z.number().optional(),
 	url: z.string().optional(),
+	__apiKey: z.string().optional(),
 });
 
 export type GooglePlace = z.infer<typeof GooglePlaceSchema>;
@@ -108,6 +116,12 @@ export function isBusinessPlace(place: GooglePlace) {
 }
 
 export function mapPlaceResult(place: GooglePlace, address: string) {
+	const photoReference = place.photos?.find((photo) => photo.photo_reference)?.photo_reference;
+	const apiKey = place.__apiKey;
+	const photoUrl =
+		photoReference && apiKey
+			? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=360&photoreference=${encodeURIComponent(photoReference)}&key=${apiKey}`
+			: undefined;
 	return {
 		id: place.place_id,
 		name: place.name,
@@ -117,6 +131,8 @@ export function mapPlaceResult(place: GooglePlace, address: string) {
 		rating: place.rating,
 		userRatingsTotal: place.user_ratings_total,
 		types: place.types,
+		photoReference,
+		photoUrl,
 		website: place.website,
 		phone: place.formatted_phone_number,
 		businessStatus: place.business_status,
@@ -168,11 +184,15 @@ export async function fetchPaginatedGooglePlaces({
 		}
 
 		const data = await fetchGooglePage(url, pageParams);
+		const pageKey = firstPageParams.get("key") ?? "";
 		collected.push(
 			...data.results
 				.filter(isBusinessPlace)
 				.map((place) =>
-					mapPlaceResult(place, place.formatted_address ?? place.vicinity ?? ""),
+					mapPlaceResult(
+						{ ...place, __apiKey: pageKey },
+						place.formatted_address ?? place.vicinity ?? "",
+					),
 				),
 		);
 
@@ -194,7 +214,7 @@ export async function fetchGooglePlaceDetails({
 	const params = new URLSearchParams({
 		place_id: placeId,
 		fields:
-			"place_id,name,formatted_address,geometry,rating,user_ratings_total,types,website,formatted_phone_number,opening_hours,business_status,price_level,url",
+			"place_id,name,formatted_address,geometry,rating,user_ratings_total,types,photos,website,formatted_phone_number,opening_hours,business_status,price_level,url",
 		key: apiKey,
 	});
 
@@ -209,7 +229,10 @@ export async function fetchGooglePlaceDetails({
 	if (!data.result) return null;
 
 	const place = data.result;
-	return mapPlaceResult(place, place.formatted_address ?? "");
+	return mapPlaceResult(
+		{ ...place, __apiKey: apiKey },
+		place.formatted_address ?? "",
+	);
 }
 
 const SOCIAL_PATTERNS = {
