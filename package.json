@@ -12,9 +12,11 @@
 		"db:migrate": "drizzle-kit migrate",
 		"db:push": "drizzle-kit push",
 		"db:studio": "drizzle-kit studio",
-		"dev": "next dev --turbo",
+		"dev": "pnpm concurrently --kill-others --names \"next,trigger\" --prefix-colors \"yellow,blue\" \"next dev\" \"pnpm run trigger:dev\"",
 		"preview": "next build && next start",
 		"start": "next start",
+		"trigger:deploy": "trigger deploy",
+		"trigger:dev": "trigger dev",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -29,6 +31,7 @@
 		"@t3-oss/env-nextjs": "^0.12.0",
 		"@tanstack/react-query": "^5.69.0",
 		"@tanstack/react-table": "^8.21.3",
+		"@trigger.dev/sdk": "4.4.4",
 		"@trpc/client": "^11.0.0",
 		"@trpc/react-query": "^11.0.0",
 		"@trpc/server": "^11.0.0",
@@ -43,7 +46,7 @@
 		"leaflet.fullscreen": "^5.3.1",
 		"leaflet.markercluster": "^1.5.3",
 		"lucide-react": "^1.8.0",
-		"next": "^15.2.3",
+		"next": "^16.2.3",
 		"next-themes": "^0.4.6",
 		"nuqs": "^2.8.9",
 		"radix-ui": "^1.4.3",
@@ -64,6 +67,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.2.5",
 		"@tailwindcss/postcss": "^4.0.15",
+		"@trigger.dev/build": "4.4.4",
 		"@types/geojson": "^7946.0.16",
 		"@types/leaflet": "^1.9.21",
 		"@types/leaflet-draw": "^1.0.13",
@@ -71,9 +75,11 @@
 		"@types/node": "^20.14.10",
 		"@types/react": "^19.0.0",
 		"@types/react-dom": "^19.0.0",
+		"concurrently": "^9.2.1",
 		"drizzle-kit": "^0.30.5",
 		"postcss": "^8.5.3",
 		"tailwindcss": "^4.0.15",
+		"trigger.dev": "^4.4.4",
 		"typescript": "^5.8.2"
 	},
 	"ct3aMetadata": {

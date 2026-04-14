@@ -13,8 +13,13 @@ const config = {
                 hostname: "maps.googleapis.com",
             },
         ],
+        qualities: [60, 75],
     },
     async headers() {
+        if (process.env.NODE_ENV !== "production") {
+            return [];
+        }
+
         return [
             {
                 source: "/:all*(svg|jpg|jpeg|png|gif|webp|ico|avif)",

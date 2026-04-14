@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { FunnelPlusIcon, XIcon } from "lucide-react"
 
 import { Button } from "~/components/ui/button"
@@ -7,8 +8,6 @@ import { Popover, PopoverContent, PopoverDescription, PopoverTitle, PopoverHeade
 import { Separator } from "../ui/separator"
 
 interface SearchFilterProps {
-    filtersOpen: boolean
-    onOpenChange: (value: boolean) => void
     filterMinRating: number
     onMinRatingChange: (value: number) => void
     filterHasWebsite: boolean | null
@@ -23,14 +22,12 @@ const RATING_OPTIONS = [0, 3, 3.5, 4, 4.5] as const
 const RADIUS_OPTIONS = [
     { value: 1000, label: "1km" },
     { value: 2000, label: "2km" },
+    { value: 3000, label: "3km" },
     { value: 5000, label: "5km" },
-    { value: 10000, label: "10km" },
 ] as const
-const RESULT_LIMIT_OPTIONS = [10, 20, 30] as const
+const RESULT_LIMIT_OPTIONS = [10, 20, 30, 40, 50] as const
 
 export default function SearchFilter({
-    filtersOpen,
-    onOpenChange,
     filterMinRating,
     onMinRatingChange,
     filterHasWebsite,
@@ -40,13 +37,20 @@ export default function SearchFilter({
     resultLimit,
     onResultLimitChange,
 }: SearchFilterProps) {
+    const [filtersOpen, setFiltersOpen] = useState(false)
+    const hasActiveFilters =
+        filterMinRating > 0 ||
+        filterHasWebsite !== null ||
+        radius !== 1000 ||
+        resultLimit !== 10
+
     return (
-        <Popover open={filtersOpen} onOpenChange={onOpenChange}>
+        <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
             <PopoverTrigger
                 render={
                     <Button type="button" variant="ghost" size="icon">
                         <FunnelPlusIcon />
-                        {(filterMinRating > 0 || filterHasWebsite !== null) && (
+                        {hasActiveFilters && (
                             <span className="absolute top-2 right-2 size-2 rounded-full bg-primary" />
                         )}
                         <span className="sr-only">Filter</span>

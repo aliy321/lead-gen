@@ -57,6 +57,12 @@ export const leads = sqliteTable(
 	(table) => [
 		index("lead_created_by_idx").on(table.createdById),
 		index("lead_created_at_idx").on(table.createdAt),
+		index("lead_user_created_at_idx").on(table.createdById, table.createdAt),
+		index("lead_user_status_score_idx").on(
+			table.createdById,
+			table.status,
+			table.score,
+		),
 		uniqueIndex("lead_user_place_unique_idx").on(table.createdById, table.placeId),
 	],
 );

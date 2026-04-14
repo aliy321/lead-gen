@@ -12,11 +12,17 @@ export interface Business {
     photoUrl?: string;
     website?: string;
     phone?: string;
+    businessStatus?: string;
+    priceLevel?: number;
+    openingHours?: string[];
+    googleMapsUrl?: string;
     hasWebsite?: boolean;
     websiteVerified?: boolean;
     websiteVerifiedAt?: Date;
     _types?: string[];
     _userRatingsTotal?: number;
+    _distanceKm?: number;
+    _contactabilityScore?: number;
 }
 
 export interface DisplayBusiness extends Business {
@@ -40,6 +46,20 @@ export interface SavedLead {
     status: string | null;
     score: number | null;
     notes: string | null;
+    hasWebsite: boolean | null;
+    websiteContactForm: boolean | null;
+    websiteMobileFriendly: string | null;
+    websiteHasCta: boolean | null;
+    websiteModern: boolean | null;
+    websiteSpeed: string | null;
+    websiteSeo: boolean | null;
+    googlePrimaryType: string | null;
+    googlePriceLevel: number | null;
+    googleBusinessStatus: string | null;
+    openingHoursJson: string | null;
+    socialLinksJson: string | null;
+    lastEnrichedAt: Date | null;
+    lastContactedAt: Date | null;
     createdAt: Date | null;
 }
 

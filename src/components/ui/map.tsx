@@ -50,6 +50,7 @@ import "leaflet.fullscreen/dist/Control.FullScreen.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import "leaflet/dist/leaflet.css";
+
 import {
 	CircleIcon,
 	LayersIcon,
@@ -567,6 +568,7 @@ function MapMarker({
 	popupAnchor,
 	tooltipAnchor,
 	eventHandlers,
+	iconClassName,
 	...props
 }: Omit<MarkerProps, "icon"> &
 	Pick<
@@ -576,6 +578,7 @@ function MapMarker({
 		icon?: ReactNode;
 		ref?: Ref<Marker>;
 		eventHandlers?: Record<string, () => void>;
+		iconClassName?: string;
 	}) {
 	const { L } = useLeaflet();
 	if (!L) return null;
@@ -584,6 +587,7 @@ function MapMarker({
 		<LeafletMarker
 			icon={L.divIcon({
 				html: renderToString(icon),
+				className: cn("leaflet-div-icon", iconClassName),
 				iconAnchor,
 				...(bgPos ? { bgPos } : {}),
 				...(popupAnchor ? { popupAnchor } : {}),
@@ -734,7 +738,7 @@ function MapTooltip({
 	return (
 		<LeafletTooltip
 			className={cn(
-				"animate-in fade-in-0 zoom-in-95 fade-out-0 zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 w-fit text-xs text-balance transition-opacity",
+				"lead-map-tooltip animate-in fade-in-0 zoom-in-95 fade-out-0 zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 relative z-50 w-fit border-none! bg-transparent! p-0! text-xs text-balance shadow-none! transition-opacity",
 				className,
 			)}
 			data-side={side}
@@ -873,7 +877,7 @@ function MapFullscreenControl({
 			<Button
 				type="button"
 				size="icon-sm"
-				variant="secondary"
+				variant="outline"
 				onClick={() => map.toggleFullscreen()}
 				aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
 				title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}

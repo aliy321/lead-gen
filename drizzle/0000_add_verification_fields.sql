@@ -1,4 +1,4 @@
-CREATE TABLE `account` (
+CREATE TABLE IF NOT EXISTS `account` (
 	`id` text(255) PRIMARY KEY NOT NULL,
 	`userId` text(255) NOT NULL,
 	`accountId` text(255) NOT NULL,
@@ -15,8 +15,8 @@ CREATE TABLE `account` (
 	FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE INDEX `account_user_id_idx` ON `account` (`userId`);--> statement-breakpoint
-CREATE TABLE `lead` (
+CREATE INDEX IF NOT EXISTS `account_user_id_idx` ON `account` (`userId`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `lead` (
 	`id` text PRIMARY KEY NOT NULL,
 	`placeId` text NOT NULL,
 	`name` text NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE `lead` (
 	`updatedAt` integer
 );
 --> statement-breakpoint
-CREATE TABLE `post` (
+CREATE TABLE IF NOT EXISTS `post` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text(256),
 	`createdById` text(255) NOT NULL,
@@ -57,9 +57,9 @@ CREATE TABLE `post` (
 	FOREIGN KEY (`createdById`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE INDEX `created_by_idx` ON `post` (`createdById`);--> statement-breakpoint
-CREATE INDEX `name_idx` ON `post` (`name`);--> statement-breakpoint
-CREATE TABLE `session` (
+CREATE INDEX IF NOT EXISTS `created_by_idx` ON `post` (`createdById`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `name_idx` ON `post` (`name`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `session` (
 	`id` text(255) PRIMARY KEY NOT NULL,
 	`userId` text(255) NOT NULL,
 	`token` text(255) NOT NULL,
@@ -71,9 +71,9 @@ CREATE TABLE `session` (
 	FOREIGN KEY (`userId`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `session_token_unique` ON `session` (`token`);--> statement-breakpoint
-CREATE INDEX `session_user_id_idx` ON `session` (`userId`);--> statement-breakpoint
-CREATE TABLE `user` (
+CREATE UNIQUE INDEX IF NOT EXISTS `session_token_unique` ON `session` (`token`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `session_user_id_idx` ON `session` (`userId`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `user` (
 	`id` text(255) PRIMARY KEY NOT NULL,
 	`name` text(255),
 	`email` text(255) NOT NULL,
@@ -83,8 +83,8 @@ CREATE TABLE `user` (
 	`updatedAt` integer
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `user_email_unique` ON `user` (`email`);--> statement-breakpoint
-CREATE TABLE `verification` (
+CREATE UNIQUE INDEX IF NOT EXISTS `user_email_unique` ON `user` (`email`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `verification` (
 	`id` text(255) PRIMARY KEY NOT NULL,
 	`identifier` text(255) NOT NULL,
 	`value` text(255) NOT NULL,
@@ -93,4 +93,4 @@ CREATE TABLE `verification` (
 	`updatedAt` integer
 );
 --> statement-breakpoint
-CREATE INDEX `verification_identifier_idx` ON `verification` (`identifier`);
+CREATE INDEX IF NOT EXISTS `verification_identifier_idx` ON `verification` (`identifier`);

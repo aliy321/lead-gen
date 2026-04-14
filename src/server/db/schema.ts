@@ -4,6 +4,10 @@ import { index, sqliteTable } from "drizzle-orm/sqlite-core";
 // Re-export leads table from separate file
 export { leads, leadStatusEnum } from "./leads";
 export type { LeadStatus } from "./leads";
+export { placeEnrichments, placeEnrichmentStatusEnum } from "./place-enrichments";
+export type { PlaceEnrichmentStatus } from "./place-enrichments";
+export { enrichmentJobs, enrichmentJobStatusEnum } from "./enrichment-jobs";
+export type { EnrichmentJobStatus } from "./enrichment-jobs";
 
 /**
  * Multi-project schema prefix helper

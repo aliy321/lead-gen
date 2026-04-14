@@ -57,6 +57,16 @@ const NON_BUSINESS_PLACE_TYPES = new Set([
 	"postal_code",
 ]);
 
+const EXCLUDED_PLACE_TYPES = new Set([
+	"supermarket",
+	"grocery_or_supermarket",
+]);
+
+const EXCLUDED_NAME_PATTERNS = [
+	/\bblock\s+\d+\b/i,
+	/\bhdb\b/i,
+];
+
 const BUSINESS_RELEVANT_PLACE_TYPES = new Set([
 	"establishment",
 	"point_of_interest",
@@ -111,6 +121,12 @@ export function extractAreaFromAddress(address: string): string | null {
 export function isBusinessPlace(place: GooglePlace) {
 	const types = place.types ?? [];
 	if (types.length === 0) return false;
+	if (EXCLUDED_NAME_PATTERNS.some((pattern) => pattern.test(place.name))) {
+		return false;
+	}
+	if (types.some((type) => EXCLUDED_PLACE_TYPES.has(type))) {
+		return false;
+	}
 	if (types.some((type) => NON_BUSINESS_PLACE_TYPES.has(type))) return false;
 	return types.some((type) => BUSINESS_RELEVANT_PLACE_TYPES.has(type));
 }
@@ -166,7 +182,7 @@ export async function fetchPaginatedGooglePlaces({
 	firstPageParams: URLSearchParams;
 	limit: number;
 }) {
-	const maxCount = Math.max(10, Math.min(limit, 30));
+	const maxCount = Math.max(10, Math.min(limit, 50));
 	const collected: ReturnType<typeof mapPlaceResult>[] = [];
 
 	let nextPageToken: string | undefined;

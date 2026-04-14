@@ -1,4 +1,4 @@
-CREATE TABLE `lead-gen_leads` (
+CREATE TABLE IF NOT EXISTS `lead-gen_leads` (
 	`id` text PRIMARY KEY NOT NULL,
 	`placeId` text NOT NULL,
 	`name` text NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE `lead-gen_leads` (
 	`updatedAt` integer
 );
 --> statement-breakpoint
-CREATE INDEX `lead_created_by_idx` ON `lead-gen_leads` (`createdById`);--> statement-breakpoint
-CREATE INDEX `lead_created_at_idx` ON `lead-gen_leads` (`createdAt`);--> statement-breakpoint
-CREATE UNIQUE INDEX `lead_user_place_unique_idx` ON `lead-gen_leads` (`createdById`,`placeId`);--> statement-breakpoint
-DROP TABLE `lead`;
+CREATE INDEX IF NOT EXISTS `lead_created_by_idx` ON `lead-gen_leads` (`createdById`);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS `lead_created_at_idx` ON `lead-gen_leads` (`createdAt`);--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS `lead_user_place_unique_idx` ON `lead-gen_leads` (`createdById`,`placeId`);--> statement-breakpoint
+DROP TABLE IF EXISTS `lead`;

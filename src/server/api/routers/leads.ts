@@ -6,7 +6,7 @@ import {
 	protectedProcedure,
 } from "~/server/api/trpc";
 import { leads, leadStatusEnum } from "~/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq, like, or, sql } from "drizzle-orm";
 import { env } from "~/env";
 import {
 	fetchGooglePlaceDetails,
@@ -15,12 +15,66 @@ import {
 
 export const leadsRouter = createTRPCRouter({
 	// Get all leads for the current user
-	getAll: protectedProcedure.query(async ({ ctx }) => {
-		return ctx.db.query.leads.findMany({
-			where: eq(leads.createdById, ctx.session.user.id),
-			orderBy: (leads, { desc }) => [desc(leads.createdAt)],
-		});
-	}),
+	getAll: protectedProcedure
+		.input(
+			z
+				.object({
+					page: z.number().int().min(1).default(1),
+					pageSize: z.number().int().min(5).max(50).default(20),
+					query: z.string().trim().min(1).optional(),
+					status: z.enum(leadStatusEnum).optional(),
+					sort: z.enum(["newest", "score_desc"]).default("newest"),
+				})
+				.optional(),
+		)
+		.query(async ({ ctx, input }) => {
+			const page = input?.page ?? 1;
+			const pageSize = input?.pageSize ?? 20;
+			const query = input?.query;
+			const status = input?.status;
+			const sort = input?.sort ?? "newest";
+			const offset = (page - 1) * pageSize;
+
+			const predicates = [eq(leads.createdById, ctx.session.user.id)];
+			if (status) {
+				predicates.push(eq(leads.status, status));
+			}
+			if (query) {
+				const searchPattern = `%${query}%`;
+				predicates.push(
+					or(
+						like(leads.name, searchPattern),
+						like(leads.address, searchPattern),
+						like(leads.area, searchPattern),
+					)!,
+				);
+			}
+
+			const whereClause = and(...predicates);
+			const orderBy =
+				sort === "score_desc"
+					? [desc(leads.score), desc(leads.createdAt)]
+					: [desc(leads.createdAt)];
+
+			const [items, totalRows] = await Promise.all([
+				ctx.db.query.leads.findMany({
+					where: whereClause,
+					orderBy,
+					limit: pageSize + 1,
+					offset,
+				}),
+				ctx.db.select({ value: sql<number>`count(*)` }).from(leads).where(whereClause),
+			]);
+
+			const hasMore = items.length > pageSize;
+			return {
+				items: hasMore ? items.slice(0, pageSize) : items,
+				total: totalRows[0]?.value ?? 0,
+				page,
+				pageSize,
+				hasMore,
+			};
+		}),
 
 	// Get leads by status
 	getByStatus: protectedProcedure
@@ -64,54 +118,96 @@ export const leadsRouter = createTRPCRouter({
 				return existingLead;
 			}
 
-			const apiKey = env.GOOGLE_PLACES_API_KEY;
-			let details: Awaited<ReturnType<typeof fetchGooglePlaceDetails>> = null;
-			if (apiKey) {
-				try {
-					details = await fetchGooglePlaceDetails({
-						apiKey,
-						placeId: input.placeId,
-					});
-				} catch (error) {
-					console.warn("lead-enrichment-details-failed", {
-						placeId: input.placeId,
-						error: error instanceof Error ? error.message : "unknown",
-					});
-				}
-			}
-			const website = details?.website ?? input.website;
-			const websiteSignals = await fetchWebsiteSignals(website ?? undefined);
 			const now = new Date();
 
 			const [lead] = await ctx.db
 				.insert(leads)
 				.values({
 					...input,
-					name: details?.name ?? input.name,
-					address: details?.address ?? input.address,
-					area: details?.area ?? input.area,
-					lat: details?.location?.lat ?? input.lat,
-					lng: details?.location?.lng ?? input.lng,
-					rating: details?.rating ?? input.rating,
-					reviewCount: details?.userRatingsTotal ?? input.reviewCount,
-					types: details?.types?.join(",") ?? input.types,
-					website,
-					phone: details?.phone ?? input.phone,
-					hasWebsite: Boolean(website),
-					websiteContactForm: websiteSignals.hasContactForm,
-					googlePrimaryType: details?.types?.[0] ?? null,
-					googlePriceLevel: details?.priceLevel,
-					googleBusinessStatus: details?.businessStatus,
-					openingHoursJson: details?.openingHours
-						? JSON.stringify(details.openingHours)
-						: null,
-					socialLinksJson: JSON.stringify(websiteSignals.socialLinks),
-					lastEnrichedAt: now,
+					hasWebsite: Boolean(input.website),
 					sourceUpdatedAt: now,
 					createdById: ctx.session.user.id,
 					status: "new",
 				})
 				.returning();
+			if (!lead) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to create lead",
+				});
+			}
+
+			void (async () => {
+				const apiKey = env.GOOGLE_PLACES_API_KEY;
+				let details: Awaited<ReturnType<typeof fetchGooglePlaceDetails>> = null;
+				if (apiKey) {
+					try {
+						details = await fetchGooglePlaceDetails({
+							apiKey,
+							placeId: input.placeId,
+						});
+					} catch (error) {
+						console.warn("lead-enrichment-details-failed", {
+							placeId: input.placeId,
+							error: error instanceof Error ? error.message : "unknown",
+						});
+					}
+				}
+
+				const website = details?.website ?? input.website;
+				const websiteSignalsPromise = fetchWebsiteSignals(website ?? undefined);
+				const timeoutPromise = new Promise<Awaited<ReturnType<typeof fetchWebsiteSignals>>>(
+					(resolve) =>
+						setTimeout(
+							() => resolve({ hasContactForm: false, socialLinks: [] }),
+							5000,
+						),
+				);
+				const websiteSignals = await Promise.race([
+					websiteSignalsPromise,
+					timeoutPromise,
+				]);
+				const enrichmentTime = new Date();
+
+				await ctx.db
+					.update(leads)
+					.set({
+						name: details?.name ?? input.name,
+						address: details?.address ?? input.address,
+						area: details?.area ?? input.area,
+						lat: details?.location?.lat ?? input.lat,
+						lng: details?.location?.lng ?? input.lng,
+						rating: details?.rating ?? input.rating,
+						reviewCount: details?.userRatingsTotal ?? input.reviewCount,
+						types: details?.types?.join(",") ?? input.types,
+						website,
+						phone: details?.phone ?? input.phone,
+						hasWebsite: Boolean(website),
+						websiteContactForm: websiteSignals.hasContactForm,
+						googlePrimaryType: details?.types?.[0] ?? null,
+						googlePriceLevel: details?.priceLevel,
+						googleBusinessStatus: details?.businessStatus,
+						openingHoursJson: details?.openingHours
+							? JSON.stringify(details.openingHours)
+							: null,
+						socialLinksJson: JSON.stringify(websiteSignals.socialLinks),
+						lastEnrichedAt: enrichmentTime,
+						sourceUpdatedAt: enrichmentTime,
+						updatedAt: enrichmentTime,
+					})
+					.where(
+						and(
+							eq(leads.id, lead.id),
+							eq(leads.createdById, ctx.session.user.id),
+						),
+					);
+			})().catch((error) => {
+				console.warn("lead-enrichment-background-failed", {
+					placeId: input.placeId,
+					error: error instanceof Error ? error.message : "unknown",
+				});
+			});
+
 			return lead;
 		}),
 

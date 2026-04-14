@@ -16,6 +16,7 @@ export const env = createEnv({
 		BETTER_AUTH_GOOGLE_CLIENT_SECRET: z.string().optional(),
 		GOOGLE_PLACES_API_KEY: z.string().optional(),
 		GOOGLE_PLACES_RATE_LIMIT_PER_MINUTE: z.coerce.number().int().positive().optional(),
+		TRIGGER_SECRET_KEY: z.string().optional(),
 		DATABASE_URL: z.string(),
 		NODE_ENV: z
 			.enum(["development", "test", "production"])
@@ -44,6 +45,7 @@ export const env = createEnv({
 		GOOGLE_PLACES_API_KEY: process.env.GOOGLE_PLACES_API_KEY,
 		GOOGLE_PLACES_RATE_LIMIT_PER_MINUTE:
 			process.env.GOOGLE_PLACES_RATE_LIMIT_PER_MINUTE,
+		TRIGGER_SECRET_KEY: process.env.TRIGGER_SECRET_KEY,
 		DATABASE_URL: process.env.DATABASE_URL,
 		NODE_ENV: process.env.NODE_ENV,
 		NEXT_PUBLIC_GOOGLE_PLACES_API_KEY: process.env.GOOGLE_PLACES_API_KEY,
