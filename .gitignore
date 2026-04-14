@@ -47,3 +47,4 @@ yarn-error.log*
 .idea
 .trigger
 certificates
+.cursor/debug-*.log
